@@ -1137,30 +1137,6 @@ table.sm-mx { min-width: 700px; }
   </header>
   <div id="dt-gh-state"></div>
   <details class="dt-how">
-    <summary>Включить запись для SMM (один раз, для владельца)</summary>
-    <ol>
-      <li>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token.</li>
-      <li>Repository access: Only select repositories → репозиторий сайта. Permissions → Contents: Read and write. Срок — год.</li>
-      <li>Вставьте токен ниже, придумайте пароль (от 8 символов, лучше длинную фразу) и нажмите «Включить запись».</li>
-      <li>Передайте пароль SMM: вводит один раз на своём устройстве и дальше обходится без GitHub.</li>
-    </ol>
-    <p class="dt-hint">Токен в открытом виде нигде не лежит: в репозитории только копия, зашифрованная паролем (<code>data/access.json</code>). Репозиторий публичный, поэтому пароль нужен не простой. Сменился токен или пароль — повторите шаги.</p>
-    <div class="dt-gh">
-      <label class="dt-f" for="gh-owner"><span class="dt-l">Владелец (логин GitHub)</span><span class="dt-in"><input id="gh-owner" type="text" autocapitalize="off" spellcheck="false"></span></label>
-      <label class="dt-f" for="gh-repo"><span class="dt-l">Репозиторий</span><span class="dt-in"><input id="gh-repo" type="text" autocapitalize="off" spellcheck="false"></span></label>
-      <label class="dt-f" for="gh-branch"><span class="dt-l">Ветка</span><span class="dt-in"><input id="gh-branch" type="text" autocapitalize="off" spellcheck="false"></span></label>
-      <label class="dt-f" for="gh-path"><span class="dt-l">Файл данных</span><span class="dt-in"><input id="gh-path" type="text" autocapitalize="off" spellcheck="false"></span></label>
-      <label class="dt-f dt-wide" for="gh-token"><span class="dt-l">Токен доступа</span><span class="dt-in"><input id="gh-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"><button type="button" class="dt-eye" data-for="gh-token" aria-label="Показать или скрыть токен">Показать</button></span></label>
-      <label class="dt-f dt-wide" for="gh-pw"><span class="dt-l">Пароль для команды</span><span class="dt-in"><input id="gh-pw" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="не короче 8 символов"><button type="button" class="dt-eye" data-for="gh-pw" aria-label="Показать или скрыть пароль">Показать</button></span></label>
-    </div>
-    <div class="dt-btns">
-      <button type="button" class="dt-btn" id="gh-enable">Включить запись</button>
-      <button type="button" class="dt-btn ghost" id="gh-test">Проверить токен</button>
-      <button type="button" class="dt-btn ghost" id="gh-forget">Забыть токен на этом устройстве</button>
-    </div>
-    <p class="dt-msg" id="gh-msg" role="status" hidden></p>
-  </details>
-  <details class="dt-how">
     <summary>Запасной вариант: через файл</summary>
     <p class="dt-hint">Если запись не работает, выгрузите данные текстом или файлом и положите в репозиторий вручную как <code>data/stats.json</code>. Файл можно загрузить обратно.</p>
     <div class="dt-btns">
@@ -4556,6 +4532,7 @@ function renderAllUI() {
 
 /* ── владелец: включение записи ── */
 function loadCfgForm() {
+  if (!$('gh-owner')) return;
   var c = cfg();
   $('gh-owner').value = c.owner; $('gh-repo').value = c.repo; $('gh-branch').value = c.branch; $('gh-path').value = c.path;
 }
@@ -4656,9 +4633,11 @@ function initUI() {
     unlock(pw).then(function () { $('ul-pw').value = ''; msg('ul-msg', ''); }, function (e) { msg('ul-msg', e.message || 'Не удалось открыть ввод.', 'err'); }).then(function () { $('ul-go').disabled = false; });
   });
   $('ul-pw').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); $('ul-go').click(); } });
-  $('gh-enable').addEventListener('click', enableWrite);
-  $('gh-test').addEventListener('click', checkToken);
-  $('gh-forget').addEventListener('click', function () { lockHere(); loadCfgForm(); msg('gh-msg', 'Токен удалён из этого браузера.', 'ok'); });
+  if ($('gh-enable')) {
+    $('gh-enable').addEventListener('click', enableWrite);
+    $('gh-test').addEventListener('click', checkToken);
+    $('gh-forget').addEventListener('click', function () { lockHere(); loadCfgForm(); msg('gh-msg', 'Токен удалён из этого браузера.', 'ok'); });
+  }
   Array.prototype.forEach.call(document.querySelectorAll('.dt-eye'), function (b) {
     b.addEventListener('click', function () { var t = $(b.getAttribute('data-for')); t.type = t.type === 'password' ? 'text' : 'password'; b.textContent = t.type === 'password' ? 'Показать' : 'Скрыть'; });
   });
